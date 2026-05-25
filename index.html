@@ -2143,8 +2143,7 @@
             mostrarPantallaAgenda();
             return;
           }
-          opcionTramiteJourney = 'prestamos';
-          await solicitarAtencion('presencial');
+          await llamarAgenteConOpcionTotem('prestamos');
         });
         opcionesGrid.appendChild(cardPrestamos);
         
@@ -2184,8 +2183,7 @@
             mostrarPantallaAgenda();
             return;
           }
-          opcionTramiteJourney = 'inversiones';
-          await solicitarAtencion('presencial');
+          await llamarAgenteConOpcionTotem('inversiones');
         });
         opcionesGrid.appendChild(cardInversiones);
       }
@@ -2334,6 +2332,14 @@
             });
           }
           
+          // Trámites de presencial directo (Comprar medicamentos / Ortopedia): omitir elección de canal
+          if (opcionTramiteJourney === 'prestamos' || opcionTramiteJourney === 'inversiones') {
+            if (messageText) mostrarResumen(messageText);
+            const delayPresencial = contents.length > 0 ? contents.length * 800 + 500 : 400;
+            setTimeout(() => { solicitarAtencionPresencialDirecta(); }, delayPresencial);
+            return;
+          }
+
           // ID/CURP 240696: siempre ofrecer videollamada y presencial (el encolar usa mismo JSON enriquecido que el resto)
           if (esDniDemoDobleCanal240696()) {
             if (messageText) {
