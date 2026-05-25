@@ -834,6 +834,138 @@
       }
     }
     
+    /* ─── Bloque WhatsApp / QR (turno presencial directo) ─── */
+    .wa-oferta-container {
+      display: none;
+      margin-top: 1.25rem;
+      width: 100%;
+    }
+
+    .wa-oferta-container.visible {
+      display: block;
+    }
+
+    .wa-alerta-demanda {
+      background: #fff8e1;
+      border: 2px solid #f9a825;
+      border-radius: 14px;
+      padding: 0.85rem 1rem;
+      display: flex;
+      align-items: flex-start;
+      gap: 0.65rem;
+      margin-bottom: 1rem;
+      text-align: left;
+    }
+
+    .wa-alerta-demanda i {
+      color: #f9a825;
+      font-size: 1.3rem;
+      flex-shrink: 0;
+      margin-top: 0.1rem;
+    }
+
+    .wa-alerta-demanda-texto {
+      font-size: 0.88rem;
+      color: #5a4000;
+      line-height: 1.45;
+    }
+
+    .wa-alerta-demanda-texto strong {
+      display: block;
+      font-size: 0.95rem;
+      color: #3e2c00;
+      margin-bottom: 0.2rem;
+    }
+
+    .wa-oferta-card {
+      background: #ffffff;
+      border: 2px solid #25d366;
+      border-radius: 16px;
+      padding: 1rem 1.25rem;
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+    }
+
+    .wa-oferta-qr {
+      flex-shrink: 0;
+      width: 90px;
+      height: 90px;
+      object-fit: contain;
+      border-radius: 8px;
+      border: 1px solid #e0e0e0;
+    }
+
+    .wa-oferta-info {
+      flex: 1;
+      text-align: left;
+    }
+
+    .wa-oferta-info .wa-oferta-titulo {
+      font-size: 0.9rem;
+      font-weight: 700;
+      color: #1a1a2e;
+      margin-bottom: 0.25rem;
+    }
+
+    .wa-oferta-info .wa-oferta-desc {
+      font-size: 0.8rem;
+      color: #5c6b8a;
+      line-height: 1.4;
+      margin-bottom: 0.6rem;
+    }
+
+    .btn-wa-pedido {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      background: #25d366;
+      color: #ffffff;
+      border: none;
+      border-radius: 9999px;
+      padding: 0.45rem 1rem;
+      font-size: 0.85rem;
+      font-weight: 700;
+      cursor: pointer;
+      text-decoration: none;
+      transition: background 0.2s, transform 0.2s;
+      font-family: inherit;
+    }
+
+    .btn-wa-pedido:hover {
+      background: #1fb855;
+      color: #ffffff;
+      transform: translateY(-1px);
+    }
+
+    /* ─── Número de turno destacado ─── */
+    .turno-numero-badge {
+      display: none;
+      background: var(--siman-azul);
+      color: #ffffff;
+      border-radius: 14px;
+      padding: 0.75rem 1rem;
+      margin-bottom: 0.75rem;
+    }
+
+    .turno-numero-badge.visible {
+      display: block;
+    }
+
+    .turno-numero-label {
+      font-size: 0.78rem;
+      opacity: 0.85;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      margin-bottom: 0.2rem;
+    }
+
+    .turno-numero-valor {
+      font-size: 2rem;
+      font-weight: 700;
+      letter-spacing: 0.06em;
+    }
+
     /* Log container (igual que app-cliente.html) */
     .log-container {
       flex: 1;
@@ -1153,6 +1285,33 @@
           <a href="#" id="btnVideoLink" class="btn-video" target="_blank">
             <i class="bi bi-camera-video me-2"></i>Iniciar Videollamada
           </a>
+        </div>
+
+        <!-- Turno número badge (presencial directo) -->
+        <div class="turno-numero-badge" id="turnoNumeroBadge">
+          <div class="turno-numero-label">Tu número de turno</div>
+          <div class="turno-numero-valor" id="turnoNumeroValor">—</div>
+        </div>
+
+        <!-- Oferta WhatsApp + QR (presencial directo: comprar medicamentos / ortopedia) -->
+        <div class="wa-oferta-container" id="waOfertaContainer">
+          <div class="wa-alerta-demanda">
+            <i class="bi bi-exclamation-triangle-fill"></i>
+            <div class="wa-alerta-demanda-texto">
+              <strong>Tiempo de atención elevado</strong>
+              ¿Quieres agilizar tu pedido? Puedes enviarlo anticipadamente por WhatsApp y lo tendremos listo cuando te atiendan.
+            </div>
+          </div>
+          <div class="wa-oferta-card">
+            <img src="images/QR_pedido.png" alt="QR WhatsApp Pedido" class="wa-oferta-qr" />
+            <div class="wa-oferta-info">
+              <div class="wa-oferta-titulo">Envía tu pedido por WhatsApp</div>
+              <div class="wa-oferta-desc">Escanea el código QR o toca el botón para enviar tu lista de medicamentos ahora.</div>
+              <a href="https://wa.me/50432165124" target="_blank" rel="noopener noreferrer" class="btn-wa-pedido">
+                <i class="bi bi-whatsapp"></i> Abrir WhatsApp
+              </a>
+            </div>
+          </div>
         </div>
       </div>
       
@@ -1984,7 +2143,8 @@
             mostrarPantallaAgenda();
             return;
           }
-          await llamarAgenteConOpcionTotem('prestamos');
+          opcionTramiteJourney = 'prestamos';
+          await solicitarAtencion('presencial');
         });
         opcionesGrid.appendChild(cardPrestamos);
         
@@ -2024,7 +2184,8 @@
             mostrarPantallaAgenda();
             return;
           }
-          await llamarAgenteConOpcionTotem('inversiones');
+          opcionTramiteJourney = 'inversiones';
+          await solicitarAtencion('presencial');
         });
         opcionesGrid.appendChild(cardInversiones);
       }
@@ -2411,20 +2572,56 @@
         screenOpciones.classList.remove('active');
         if (screenExpedientePendiente) screenExpedientePendiente.classList.remove('active');
         screenConfirmacion.classList.add('active');
-        
-        // Ocultar elementos que no aplican si no hay data
+
+        const esPresencialDirecto = (opcionTramiteJourney === 'prestamos' || opcionTramiteJourney === 'inversiones');
+
+        // Ocultar todos los bloques opcionales por defecto
         document.getElementById('tiempoEspera').style.display = 'none';
         document.getElementById('videoLinkContainer').style.display = 'none';
-        
-        // Mostrar tiempo de espera solo si hay data
+        document.getElementById('turnoNumeroBadge').classList.remove('visible');
+        document.getElementById('waOfertaContainer').classList.remove('visible');
+
+        if (esPresencialDirecto) {
+          // Título y mensaje adaptados
+          const confirmacionTitle = screenConfirmacion.querySelector('h2');
+          const confirmacionMessage = screenConfirmacion.querySelector('.message');
+          if (confirmacionTitle) confirmacionTitle.textContent = '¡Tu turno fue asignado!';
+          if (confirmacionMessage) {
+            const tramiteNombre = opcionTramiteJourney === 'prestamos' ? 'Comprar medicamentos' : 'Ortopedia y movilidad';
+            confirmacionMessage.innerHTML = `
+              <strong>${formNombre} ${formApellido}</strong> — ${tramiteNombre}<br>
+              Espera a que te llamen en caja.
+            `;
+          }
+
+          // Número de turno
+          const turnCode = data && (data.turnCode || data.ticketCode || data.token || data.number || data.turn);
+          if (turnCode) {
+            document.getElementById('turnoNumeroValor').textContent = turnCode;
+            document.getElementById('turnoNumeroBadge').classList.add('visible');
+          }
+
+          // Tiempo de espera
+          if (data && data.averageWaitingTime !== undefined) {
+            const minutos = Math.floor(data.averageWaitingTime / 60);
+            const segundos = data.averageWaitingTime % 60;
+            document.getElementById('tiempoEspera').style.display = 'block';
+            document.getElementById('tiempoEsperaValor').textContent = `${minutos} min ${segundos} seg`;
+          }
+
+          // Oferta WhatsApp + QR siempre visible para estos trámites
+          document.getElementById('waOfertaContainer').classList.add('visible');
+          return;
+        }
+
+        // Flujo estándar (consulta médica / videollamada)
         if (data && data.averageWaitingTime !== undefined) {
           const minutos = Math.floor(data.averageWaitingTime / 60);
           const segundos = data.averageWaitingTime % 60;
           document.getElementById('tiempoEspera').style.display = 'block';
           document.getElementById('tiempoEsperaValor').textContent = `${minutos} min ${segundos} seg`;
         }
-        
-        // Mostrar enlace de videollamada si aplica
+
         if (tipo === 'videollamada' && data && data.videoCallUrl) {
           const videoUrl = data.videoCallUrl + (data.videoCallUrl.includes('?') ? '&' : '?') + 'videocallUser=mobile';
           document.getElementById('videoLinkContainer').style.display = 'block';
