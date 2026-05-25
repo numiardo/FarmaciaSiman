@@ -2562,8 +2562,11 @@
           }
           
           const data = await response.json();
-          console.log('Respuesta de la API:', data);
-          
+          console.log('Respuesta de la API (raw):', JSON.stringify(data, null, 2));
+          console.log('Campos disponibles en data:', Object.keys(data || {}));
+          // Si hay un nivel de anidamiento (data.data), loguear también
+          if (data && data.data) console.log('Campos en data.data:', Object.keys(data.data));
+
           // Mostrar pantalla de confirmación
           mostrarPantallaConfirmacion(data, tipo);
           
@@ -2587,6 +2590,31 @@
         document.getElementById('turnoNumeroBadge').classList.remove('visible');
         document.getElementById('waOfertaContainer').classList.remove('visible');
 
+        // Función auxiliar: extrae un campo buscando en data y en data.data (por si hay un nivel de anidamiento)
+        function extraerCampo(obj, ...keys) {
+          if (!obj) return undefined;
+          for (const k of keys) {
+            if (obj[k] !== undefined && obj[k] !== null && obj[k] !== '') return obj[k];
+          }
+          if (obj.data) {
+            for (const k of keys) {
+              if (obj.data[k] !== undefined && obj.data[k] !== null && obj.data[k] !== '') return obj.data[k];
+            }
+          }
+          return undefined;
+        }
+
+        const rawTurnCode = extraerCampo(data,
+          'turnCode', 'ticketCode', 'token', 'number', 'turn',
+          'code', 'ticket', 'turno', 'numeroTurno', 'numero', 'label'
+        );
+        const rawWaitTime = extraerCampo(data,
+          'averageWaitingTime', 'waitingTime', 'estimatedWaitingTime',
+          'avgWaitingTime', 'waitTime', 'tiempoEspera', 'tiempo'
+        );
+
+        console.log('Turno extraído:', rawTurnCode, '| Tiempo espera extraído:', rawWaitTime);
+
         if (esPresencialDirecto) {
           // Título y mensaje adaptados
           const confirmacionTitle = screenConfirmacion.querySelector('h2');
@@ -2601,18 +2629,19 @@
           }
 
           // Número de turno
-          const turnCode = data && (data.turnCode || data.ticketCode || data.token || data.number || data.turn);
-          if (turnCode) {
-            document.getElementById('turnoNumeroValor').textContent = turnCode;
+          if (rawTurnCode) {
+            document.getElementById('turnoNumeroValor').textContent = rawTurnCode;
             document.getElementById('turnoNumeroBadge').classList.add('visible');
           }
 
           // Tiempo de espera
-          if (data && data.averageWaitingTime !== undefined) {
-            const minutos = Math.floor(data.averageWaitingTime / 60);
-            const segundos = data.averageWaitingTime % 60;
+          if (rawWaitTime !== undefined) {
+            const totalSeg = parseInt(rawWaitTime, 10);
+            const minutos = Math.floor(totalSeg / 60);
+            const segundos = totalSeg % 60;
             document.getElementById('tiempoEspera').style.display = 'block';
-            document.getElementById('tiempoEsperaValor').textContent = `${minutos} min ${segundos} seg`;
+            document.getElementById('tiempoEsperaValor').textContent =
+              minutos > 0 ? `${minutos} min ${segundos} seg` : `${segundos} seg`;
           }
 
           // Oferta WhatsApp + QR siempre visible para estos trámites
@@ -2621,11 +2650,13 @@
         }
 
         // Flujo estándar (consulta médica / videollamada)
-        if (data && data.averageWaitingTime !== undefined) {
-          const minutos = Math.floor(data.averageWaitingTime / 60);
-          const segundos = data.averageWaitingTime % 60;
+        if (rawWaitTime !== undefined) {
+          const totalSeg = parseInt(rawWaitTime, 10);
+          const minutos = Math.floor(totalSeg / 60);
+          const segundos = totalSeg % 60;
           document.getElementById('tiempoEspera').style.display = 'block';
-          document.getElementById('tiempoEsperaValor').textContent = `${minutos} min ${segundos} seg`;
+          document.getElementById('tiempoEsperaValor').textContent =
+            minutos > 0 ? `${minutos} min ${segundos} seg` : `${segundos} seg`;
         }
 
         if (tipo === 'videollamada' && data && data.videoCallUrl) {
