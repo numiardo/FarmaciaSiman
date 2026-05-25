@@ -884,16 +884,8 @@
       padding: 1rem 1.25rem;
       display: flex;
       align-items: center;
+      justify-content: space-between;
       gap: 1rem;
-    }
-
-    .wa-oferta-qr {
-      flex-shrink: 0;
-      width: 90px;
-      height: 90px;
-      object-fit: contain;
-      border-radius: 8px;
-      border: 1px solid #e0e0e0;
     }
 
     .wa-oferta-info {
@@ -902,17 +894,17 @@
     }
 
     .wa-oferta-info .wa-oferta-titulo {
-      font-size: 0.9rem;
+      font-size: 0.95rem;
       font-weight: 700;
       color: #1a1a2e;
       margin-bottom: 0.25rem;
     }
 
     .wa-oferta-info .wa-oferta-desc {
-      font-size: 0.8rem;
+      font-size: 0.82rem;
       color: #5c6b8a;
       line-height: 1.4;
-      margin-bottom: 0.6rem;
+      margin-bottom: 0.65rem;
     }
 
     .btn-wa-pedido {
@@ -923,8 +915,8 @@
       color: #ffffff;
       border: none;
       border-radius: 9999px;
-      padding: 0.45rem 1rem;
-      font-size: 0.85rem;
+      padding: 0.5rem 1.1rem;
+      font-size: 0.88rem;
       font-weight: 700;
       cursor: pointer;
       text-decoration: none;
@@ -936,6 +928,31 @@
       background: #1fb855;
       color: #ffffff;
       transform: translateY(-1px);
+    }
+
+    /* QR grande centrado debajo */
+    .wa-qr-section {
+      margin-top: 1rem;
+      text-align: center;
+    }
+
+    .wa-qr-section .wa-qr-label {
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: #5c6b8a;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-bottom: 0.5rem;
+    }
+
+    .wa-qr-section img {
+      width: 180px;
+      height: 180px;
+      object-fit: contain;
+      border-radius: 12px;
+      border: 2px solid #e0e8f5;
+      padding: 6px;
+      background: #fff;
     }
 
     /* ─── Número de turno destacado ─── */
@@ -1303,14 +1320,17 @@
             </div>
           </div>
           <div class="wa-oferta-card">
-            <img src="images/QR_pedido.png" alt="QR WhatsApp Pedido" class="wa-oferta-qr" />
             <div class="wa-oferta-info">
               <div class="wa-oferta-titulo">Envía tu pedido por WhatsApp</div>
-              <div class="wa-oferta-desc">Escanea el código QR o toca el botón para enviar tu lista de medicamentos ahora.</div>
+              <div class="wa-oferta-desc">Toca el botón o escanea el código QR para enviar tu lista de medicamentos ahora.</div>
               <a href="https://wa.me/50432165124" target="_blank" rel="noopener noreferrer" class="btn-wa-pedido">
                 <i class="bi bi-whatsapp"></i> Abrir WhatsApp
               </a>
             </div>
+          </div>
+          <div class="wa-qr-section">
+            <div class="wa-qr-label">Escanea para abrir WhatsApp</div>
+            <img src="images/QR_pedido.png" alt="QR WhatsApp Pedido" />
           </div>
         </div>
       </div>
@@ -2590,30 +2610,29 @@
         document.getElementById('turnoNumeroBadge').classList.remove('visible');
         document.getElementById('waOfertaContainer').classList.remove('visible');
 
-        // Función auxiliar: extrae un campo buscando en data y en data.data (por si hay un nivel de anidamiento)
+        // Función auxiliar: extrae un campo buscando en obj, obj.data y obj.jsonDetails
         function extraerCampo(obj, ...keys) {
           if (!obj) return undefined;
-          for (const k of keys) {
-            if (obj[k] !== undefined && obj[k] !== null && obj[k] !== '') return obj[k];
-          }
-          if (obj.data) {
+          const niveles = [obj, obj.data, obj.jsonDetails].filter(Boolean);
+          for (const nivel of niveles) {
             for (const k of keys) {
-              if (obj.data[k] !== undefined && obj.data[k] !== null && obj.data[k] !== '') return obj.data[k];
+              if (nivel[k] !== undefined && nivel[k] !== null && nivel[k] !== '' && nivel[k] !== '--') return nivel[k];
             }
           }
           return undefined;
         }
 
         const rawTurnCode = extraerCampo(data,
-          'turnCode', 'ticketCode', 'token', 'number', 'turn',
-          'code', 'ticket', 'turno', 'numeroTurno', 'numero', 'label'
+          'code', 'turnCode', 'ticketCode', 'token', 'number', 'turn',
+          'ticket', 'turno', 'numeroTurno', 'numero', 'label'
         );
+        // averageWaitingTime viene en data.jsonDetails, en MINUTOS (ej: 4.61)
         const rawWaitTime = extraerCampo(data,
           'averageWaitingTime', 'waitingTime', 'estimatedWaitingTime',
           'avgWaitingTime', 'waitTime', 'tiempoEspera', 'tiempo'
         );
 
-        console.log('Turno extraído:', rawTurnCode, '| Tiempo espera extraído:', rawWaitTime);
+        console.log('Turno extraído:', rawTurnCode, '| Tiempo espera extraído (min):', rawWaitTime);
 
         if (esPresencialDirecto) {
           // Título y mensaje adaptados
@@ -2634,11 +2653,11 @@
             document.getElementById('turnoNumeroBadge').classList.add('visible');
           }
 
-          // Tiempo de espera
+          // Tiempo de espera (rawWaitTime viene en minutos decimales, ej: 4.61)
           if (rawWaitTime !== undefined) {
-            const totalSeg = parseInt(rawWaitTime, 10);
-            const minutos = Math.floor(totalSeg / 60);
-            const segundos = totalSeg % 60;
+            const totalMin = parseFloat(rawWaitTime);
+            const minutos = Math.floor(totalMin);
+            const segundos = Math.round((totalMin - minutos) * 60);
             document.getElementById('tiempoEspera').style.display = 'block';
             document.getElementById('tiempoEsperaValor').textContent =
               minutos > 0 ? `${minutos} min ${segundos} seg` : `${segundos} seg`;
@@ -2649,11 +2668,11 @@
           return;
         }
 
-        // Flujo estándar (consulta médica / videollamada)
+        // Flujo estándar (consulta médica / videollamada) — tiempo también en minutos
         if (rawWaitTime !== undefined) {
-          const totalSeg = parseInt(rawWaitTime, 10);
-          const minutos = Math.floor(totalSeg / 60);
-          const segundos = totalSeg % 60;
+          const totalMin = parseFloat(rawWaitTime);
+          const minutos = Math.floor(totalMin);
+          const segundos = Math.round((totalMin - minutos) * 60);
           document.getElementById('tiempoEspera').style.display = 'block';
           document.getElementById('tiempoEsperaValor').textContent =
             minutos > 0 ? `${minutos} min ${segundos} seg` : `${segundos} seg`;
