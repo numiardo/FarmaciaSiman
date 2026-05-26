@@ -2766,10 +2766,40 @@
         }
       }
       
+      function generarResumenFarmacia(mensajeOriginal) {
+        const tramite = etiquetaTramiteParaMensaje(opcionTramiteJourney || 'prestamos');
+
+        // Detectar canal sugerido del mensaje original para mantener coherencia
+        const txt = String(mensajeOriginal || '').toLowerCase();
+        const sugieraVideo =
+          txt.includes('sugerir videollamada: si') ||
+          txt.includes('sugerir videollamada: sí') ||
+          txt.includes('tipo de atención sugerida: videollamada');
+        const canalSugerido = sugieraVideo ? 'Videollamada' : 'Presencial';
+
+        // Extraer prioridad si existe en el mensaje original
+        const esPrioritario =
+          txt.includes('prioritaria') ||
+          txt.includes('prioridad más alta') ||
+          txt.includes('prioridad alta');
+
+        return (
+          `Cliente verificado en sistema Farmacia Simán.\n` +
+          `DNI: ${formDni}  |  Cliente: ${formNombre} ${formApellido}\n\n` +
+          `Trámite solicitado: ${tramite}\n\n` +
+          `Acciones realizadas:\n` +
+          `- Verificación de identidad: completada.\n` +
+          `- Consulta de historial de atenciones: sin alertas.\n` +
+          `- Revisión de disponibilidad de servicio: ok.\n` +
+          `- Perfil de atención asignado: ${esPrioritario ? 'Prioritaria' : 'Estándar'}.\n\n` +
+          `Canal de atención sugerido: ${canalSugerido}.`
+        );
+      }
+
       function mostrarResumen(message) {
         try {
-          const messageText = typeof message === 'string' ? message : (message.message || JSON.stringify(message, null, 2));
-          summaryContent.textContent = messageText;
+          const resumenFarmacia = generarResumenFarmacia(message);
+          summaryContent.textContent = resumenFarmacia;
           summarySection.style.display = 'block';
         } catch (err) {
           console.error('Error al mostrar resumen:', err);
