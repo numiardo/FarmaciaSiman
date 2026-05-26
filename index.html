@@ -2622,10 +2622,10 @@
           return undefined;
         }
 
-        const rawTurnCode = extraerCampo(data,
-          'code', 'turnCode', 'ticketCode', 'token', 'number', 'turn',
-          'ticket', 'turno', 'numeroTurno', 'numero', 'label'
-        );
+        // Priorizar jsonDetails.turn (ej: "A1") sobre data.code (ej: "10750DCV3TNAL")
+        const rawTurnCode =
+          (data && data.jsonDetails && (data.jsonDetails.turn || data.jsonDetails.actualTurn)) ||
+          extraerCampo(data, 'turnCode', 'ticketCode', 'token', 'number', 'turno', 'numeroTurno', 'ticket', 'code', 'label');
         // averageWaitingTime viene en data.jsonDetails, en MINUTOS (ej: 4.61)
         const rawWaitTime = extraerCampo(data,
           'averageWaitingTime', 'waitingTime', 'estimatedWaitingTime',
